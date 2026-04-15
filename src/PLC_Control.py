@@ -1,9 +1,7 @@
 import os
 import threading
 
-import json
-
-from OPC import OPC
+from src.OPC import OPC
 import cv2
 from Camera import Camera
 from datetime import datetime
@@ -11,7 +9,7 @@ import time
 import json
 
 # 联通
-import Project_414
+from src import Project_414
 
 # 初始
 opc = OPC()
@@ -24,7 +22,7 @@ last_left = 0
 last_right = 0
 
 def TestFile():
-    with open("data.json", "r", encoding="utf-8") as f:
+    with open("../data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
 
     type = "单圆工件"
@@ -166,7 +164,7 @@ def handle_left():
     try:
         # 获取型号与相机配置地址
         type = opc.GetDataByTagName("PLC", "LeftType")["value"]
-        with open("data.json", "r", encoding="utf-8") as f:
+        with open("../data.json", "r", encoding="utf-8") as f:
             data = json.load(f)
 
         camera_path = data[f"{type}"]["camera"]
@@ -197,7 +195,7 @@ def handle_right():
     try:
         # 获取型号与相机地址
         type = opc.GetDataByTagName("PLC", "RightType")["value"]
-        with open("data.json", "r", encoding="utf-8") as f:
+        with open("../data.json", "r", encoding="utf-8") as f:
             data = json.load(f)
 
         camera_path = data[f"{type}"]["camera"]

@@ -15,7 +15,7 @@ from datetime import datetime
 # NEW =================================
 
 
-DATA_FILE = "data.json"
+DATA_FILE = "../data.json"
 
 # 4.14版本
 # 相机初始化
