@@ -1,3 +1,5 @@
+import sys
+
 import cv2
 import datetime
 import numpy as np
@@ -7,13 +9,12 @@ from PIL import Image, ImageTk
 import json, os
 from datetime import datetime
 
+# 逻辑调用
+from Viewer import CameraWindow
+# import PLC_Control
+
 
 DATA_FILE = "../data.json"
-
-# 4.15版本
-# 相机初始化
-# 导入PLC-OPC西门子
-
 
 # ========= 数据 =========
 def load_presets():
@@ -36,6 +37,7 @@ def get_pca_direction(points):
 
 # ========= 图像处理 =========
 def process_image(img, p):
+
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -163,12 +165,14 @@ class App:
                   bg="#e74c3c", fg="white",
                   command=self.delete_preset).grid(row=1, column=1)
 
-        # =========================自动检测====================================
+        # =========================监测====================================
 
-        tk.Button(btn_frame, text="自动检测", width= 12,
-                  command=self.start_auto).grid(row=2, column=0, pady=5)
-        tk.Button(btn_frame, text="停止", width= 12,
-                  command=self.stop_auto).grid(row=2, column=1)
+        tk.Button(
+            btn_frame,
+            text="监测处理结果",
+            width=25,
+            command=self.start_auto
+        ).grid(row=2, column=0, columnspan=2, pady=5)
 
         # ====================================================================
 
@@ -261,15 +265,14 @@ class App:
         os.remove(filepath)
         self.refresh_file_list()
 
-    # ===========================================================================
+    # ==========================方法===========================================
 
     def start_auto(self):
-        self.running = True
-        self.auto_loop()
+        if not hasattr(self, "viewer") or not self.viewer.root.winfo_exists():
+            self.viewer = CameraWindow()
 
-    def stop_auto(self):
-        self.running = False
-
+            # 把GUI更新函数注册给PLC
+            # PLC_Control.set_callback(self.viewer.safe_update)
 
     # ===== 显示图片=====
     def show_image(self, img):
@@ -366,7 +369,7 @@ class App:
             self.result_label.config(text="请先上传图片")
             return
 
-        img, text = process_image(self.image_path, self.get_params())
+        img, text = process_image(cv2.imread(self.image_path), self.get_params())
         self.show_image(img)
         self.result_label.config(text=text)
         self.camera.config(text=self.cameraName)
@@ -374,54 +377,8 @@ class App:
         self.refresh_file_list()
 
 
-    # =============================监视==========================
-    def auto_loop(self):
-        if not self.running:
-            return
-
-        # ===== 1. 相机获取 =====
-        # cam1.TriggerOnce()
-        # img = cam1.AcqImg()
-
-        # ===================测试区域=============
-
-        # ===== 0. 初始化图片列表（只初始化一次）=====
-        if not hasattr(self, "test_images"):
-            self.test_images = ["Test1.jpg", "Test3.jpg"]
-            self.img_index = 0
-
-        # ===== 1. 读取当前图片 =====
-        img_path = self.test_images[self.img_index]
-
-        # ========================================
-
-        if img_path is not None:
-            # ===== 2. 算法处理 =====
-            data = self.get_params()
-            result_img, angle = process_image(img_path, data)
-
-            # ===== 3. 显示 =====
-            self.show_image(result_img)
-            self.result_label.config(text=angle)
-
-            # ===== 4. 切换到下一张 =====
-            self.img_index = (self.img_index + 1) % len(self.test_images)
-
-        # ===== 5. 定时下一轮 =====
-        self.root.after(2000, self.auto_loop)
-
-
-
-
 # ========= 启动 =========
 if __name__ == "__main__":
-
-    # 初始化相机1
-    # cam1 = Camera()
-    # cam1.Open("Camera1.json")
-    # cam1.SetExposureTime(300000)
-
-
 
     root = tk.Tk()
     root.iconbitmap("../temp.ico")

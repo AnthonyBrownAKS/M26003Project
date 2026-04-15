@@ -21,6 +21,13 @@ right_busy = False
 last_left = 0
 last_right = 0
 
+# 回调函数
+callback = None
+# 注册
+def set_callback(func):
+    global callback
+    callback = func
+
 def TestFile():
     with open("../data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -160,6 +167,7 @@ def plc_monitor():
 # ================左相机处理======================================
 def handle_left():
     global left_busy
+    global callback
 
     try:
         # 获取型号与相机配置地址
@@ -174,6 +182,10 @@ def handle_left():
 
         # 算法返回img, angle
         _, angle = AngleGUI.process_image(img, data[f"{type}"])
+
+        # GUI监视
+        if callback:
+            callback(img, "left")
 
         # 角度结果写入plc ==============可能错误点×=====================
         opc.SetDataByTagName("PLC", "LeftAngle", float(angle))
@@ -191,6 +203,7 @@ def handle_left():
 # ================右相机处理======================================
 def handle_right():
     global right_busy
+    global callback
 
     try:
         # 获取型号与相机地址
@@ -206,6 +219,10 @@ def handle_right():
 
         # 算法返回img, angle
         _, angle = AngleGUI.process_image(img, data[f"{type}"])
+
+        # GUI监视
+        if callback:
+            callback(img, "right")
 
         # 角度结果写入plc
         opc.SetDataByTagName("PLC", "RightAngle", float(angle))
