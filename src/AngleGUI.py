@@ -431,7 +431,7 @@ if __name__ == "__main__":
 
 
     root = tk.Tk()
-    root.iconbitmap("temp.ico")
+    root.iconbitmap("../temp.ico")
 
     App(root)
     root.mainloop()

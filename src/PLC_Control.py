@@ -9,7 +9,7 @@ import time
 import json
 
 # 联通
-from src import Project_414
+from src import AngleGUI
 
 # 初始
 opc = OPC()
@@ -25,7 +25,7 @@ def TestFile():
     with open("../data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    type = "单圆工件"
+    type = "12"
     print(data[f"{type}"]["camera"])
 
 
@@ -173,10 +173,10 @@ def handle_left():
         img = TestCamera("Left",camera_path)
 
         # 算法返回img, angle
-        _, angle = Project_414.process_image(img, data[f"{type}"])
+        _, angle = AngleGUI.process_image(img, data[f"{type}"])
 
-        # 角度结果写入plc ==============错误点×=====================
-        opc.SetDataByTagName("PLC", "LeftAngle", 1.2)
+        # 角度结果写入plc ==============可能错误点×=====================
+        opc.SetDataByTagName("PLC", "LeftAngle", float(angle))
 
         # 处理完成，左侧拍照完成信号 : 上位机完成拍照时置1，收到PLC拍照请求信号时置0
         opc.SetDataByTagName("PLC", "LeftTakePhotoComplete", 1)
@@ -205,7 +205,7 @@ def handle_right():
         img = TestCamera("Right", camera_path)
 
         # 算法返回img, angle
-        _, angle = Project_414.process_image(img, data[f"{type}"])
+        _, angle = AngleGUI.process_image(img, data[f"{type}"])
 
         # 角度结果写入plc
         opc.SetDataByTagName("PLC", "RightAngle", float(angle))
@@ -235,11 +235,13 @@ if __name__ == '__main__':
     # ==========集合测试=============
 
     # PLC监测线程 Test Accept√
-    plc_monitor()
+    # plc_monitor()
 
     # 相机调用测试 Test ERROR×
     # handle_left()
     # handle_right()
+
+    print("TestComplete!")
 
 
 

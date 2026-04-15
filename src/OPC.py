@@ -5,7 +5,7 @@ import os
 import logging
 from logging.handlers import RotatingFileHandler
 
-log_dir = 'logs'
+log_dir = '../logs'
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 
@@ -40,7 +40,7 @@ if not opc_raw_logger.handlers:
     # 每个文件最大10MB，保留7个备份文件（约70MB总容量）
     # 当文件超过10MB时自动创建新文件，最多保留8个文件（当前+7个备份）
     file_handler = RotatingFileHandler(
-        'logs/opc_raw_data.log',
+        '../logs/opc_raw_data.log',
         maxBytes=10*1024*1024,  # 10MB
         backupCount=7,            # 保留7个备份文件
         encoding='utf-8'
