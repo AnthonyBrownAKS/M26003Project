@@ -7,17 +7,10 @@ from PIL import Image, ImageTk
 import json, os
 from datetime import datetime
 
-# NEW =================================
-# 更改process_image参数传入为img,p
-# 更改process_image参数传出为img, angle，四舍五入保留2位小数
-
-
-# NEW =================================
-
 
 DATA_FILE = "../data.json"
 
-# 4.14版本
+# 4.15版本
 # 相机初始化
 # 导入PLC-OPC西门子
 
@@ -381,7 +374,7 @@ class App:
         self.refresh_file_list()
 
 
-    # =============================自动流程===================================
+    # =============================监视==========================
     def auto_loop(self):
         if not self.running:
             return
