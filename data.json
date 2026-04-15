@@ -1,0 +1,68 @@
+{
+  "12": {
+    "canny_low": 180,
+    "canny_high": 240,
+    "ksize": 9,
+    "thresh": 0,
+    "kernel": 3,
+    "minDist": 1000,
+    "minRadius": 300,
+    "maxRadius": 400,
+    "camera": "Camera1.json"
+  },
+  "56": {
+    "canny_low": 180,
+    "canny_high": 200,
+    "ksize": 9,
+    "thresh": 0,
+    "kernel": 3,
+    "minDist": 1000,
+    "minRadius": 300,
+    "maxRadius": 500,
+    "camera": "Camera2.json"
+  },
+  "3": {
+    "canny_low": 0,
+    "canny_high": 0,
+    "ksize": 0,
+    "thresh": 0,
+    "kernel": 0,
+    "minDist": 0,
+    "minRadius": 0,
+    "maxRadius": 0,
+    "camera": "Camera3.json"
+  },
+  "空白预设2": {
+    "canny_low": 0,
+    "canny_high": 0,
+    "ksize": 0,
+    "thresh": 0,
+    "kernel": 0,
+    "minDist": 0,
+    "minRadius": 0,
+    "maxRadius": 0,
+    "camera": "Camera1.json"
+  },
+  "空白预设3": {
+    "canny_low": 0,
+    "canny_high": 0,
+    "ksize": 0,
+    "thresh": 0,
+    "kernel": 0,
+    "minDist": 0,
+    "minRadius": 0,
+    "maxRadius": 0,
+    "camera": "Camera1.json"
+  },
+  "... ...": {
+    "canny_low": 0,
+    "canny_high": 0,
+    "ksize": 0,
+    "thresh": 0,
+    "kernel": 0,
+    "minDist": 0,
+    "minRadius": 0,
+    "maxRadius": 0,
+    "camera": "Camera1.json"
+  }
+}
