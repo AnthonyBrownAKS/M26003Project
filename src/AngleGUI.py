@@ -1,3 +1,4 @@
+import subprocess
 import sys
 
 import cv2
@@ -9,8 +10,9 @@ from PIL import Image, ImageTk
 import json, os
 from datetime import datetime
 
+import Viewer
+
 # 逻辑调用
-from Viewer import CameraWindow
 # import PLC_Control
 
 
@@ -94,11 +96,7 @@ def process_image(img, p):
     cv2.putText(img, f"{angle:.2f}", (40, 60),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-    # 保存文件
-    save_dir = r"C:\Users\Administrator\Desktop\OpenCV_PROJECT\results"
-    filename = datetime.now().strftime("%Y%m%d_%H%M%S") + ".jpg"
-    filepath = os.path.join(save_dir, filename)
-    cv2.imwrite(filepath, img)
+
 
     return img, round(angle, 2)
 
@@ -112,7 +110,7 @@ class App:
         self.root.configure(bg="#ecf0f1")
 
         # 保存结果文件
-        self.current_dir = r"D:\PYTHON_PROJECT\OpenCV_PROJECT\imgs"
+        self.current_dir = r"../results"
 
         # 自动检测控制
         self.running = False
@@ -169,7 +167,7 @@ class App:
 
         tk.Button(
             btn_frame,
-            text="监测处理结果",
+            text="监测工程处理结果",
             width=25,
             command=self.start_auto
         ).grid(row=2, column=0, columnspan=2, pady=5)
@@ -193,7 +191,7 @@ class App:
 
         # 上方
         preset_frame = tk.LabelFrame(right, text="预设列表")
-        preset_frame.pack(fill="x", pady=(0, 10))  # 不再 fill=y
+        preset_frame.pack(fill="x", pady=(0, 10))
 
         self.listbox = tk.Listbox(preset_frame, font=("微软雅黑", 15), height=6)
         self.listbox.pack(fill="both", expand=True)
@@ -268,11 +266,15 @@ class App:
     # ==========================方法===========================================
 
     def start_auto(self):
-        if not hasattr(self, "viewer") or not self.viewer.root.winfo_exists():
-            self.viewer = CameraWindow()
+        if sys.platform == "win32":
+            subprocess.Popen(
+                [sys.executable, "Viewer.py"],
+                creationflags=subprocess.CREATE_NO_WINDOW  # 不创建任何窗口
+            )
+            sys.exit(0)
+        else:
+            subprocess.Popen([sys.executable, "Viewer.py"])
 
-            # 把GUI更新函数注册给PLC
-            # PLC_Control.set_callback(self.viewer.safe_update)
 
     # ===== 显示图片=====
     def show_image(self, img):
@@ -329,19 +331,19 @@ class App:
         camera_entry.pack(pady=5)
 
         def confirm():
-            name = entry.get().strip()
+            name = entry.get().strip() # 老板，还没有啊
             if not name:
                 return
 
-            data = self.get_params()
+            data = self.get_params() # 我的工作是做完了——但PLC那边……还在‘研究’
             data["camera"] = camera_entry.get().strip()
 
-            self.presets[name] = data
-
-            save_presets(self.presets)
+            self.presets[name] = data # 第一，PLC那边机器人软件还没调通，机器根本动不起来，第二，相机拍照位置没定——没位置我拍什么？
+            # 第三，现场光源没装——没光我拍什么？第四，没有实际照片可以测试——没图我测不了啊
+            save_presets(self.presets) #
             self.refresh_listbox()
 
-            dialog.destroy()
+            dialog.destroy()# 总之，我程序是写好了，还没有实际联调跑，我也急啊老板。我问过了，PLC那边说还在研究机器人’。时间不确定
 
         tk.Button(dialog, text="确定", width=10,
                   command=confirm).pack(pady=10)
@@ -385,3 +387,5 @@ if __name__ == "__main__":
 
     App(root)
     root.mainloop()
+
+
