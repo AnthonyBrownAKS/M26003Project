@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 import cv2
 import datetime
 import numpy as np
@@ -7,20 +10,13 @@ from PIL import Image, ImageTk
 import json, os
 from datetime import datetime
 
-# NEW =================================
-# 更改process_image参数传入为img,p
-# 更改process_image参数传出为img, angle，四舍五入保留2位小数
+import Viewer
+
+# 逻辑调用
+# import PLC_Control
 
 
-# NEW =================================
-
-
-DATA_FILE = "data.json"
-
-# 4.14版本
-# 相机初始化
-# 导入PLC-OPC西门子
-
+DATA_FILE = "../data.json"
 
 # ========= 数据 =========
 def load_presets():
@@ -43,6 +39,7 @@ def get_pca_direction(points):
 
 # ========= 图像处理 =========
 def process_image(img, p):
+
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -99,11 +96,7 @@ def process_image(img, p):
     cv2.putText(img, f"{angle:.2f}", (40, 60),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-    # 保存文件
-    save_dir = r"C:\Users\Administrator\Desktop\OpenCV_PROJECT\results"
-    filename = datetime.now().strftime("%Y%m%d_%H%M%S") + ".jpg"
-    filepath = os.path.join(save_dir, filename)
-    cv2.imwrite(filepath, img)
+
 
     return img, round(angle, 2)
 
@@ -117,7 +110,7 @@ class App:
         self.root.configure(bg="#ecf0f1")
 
         # 保存结果文件
-        self.current_dir = r"D:\PYTHON_PROJECT\OpenCV_PROJECT\imgs"
+        self.current_dir = r"../results"
 
         # 自动检测控制
         self.running = False
@@ -170,12 +163,14 @@ class App:
                   bg="#e74c3c", fg="white",
                   command=self.delete_preset).grid(row=1, column=1)
 
-        # =========================自动检测====================================
+        # =========================监测====================================
 
-        tk.Button(btn_frame, text="自动检测", width= 12,
-                  command=self.start_auto).grid(row=2, column=0, pady=5)
-        tk.Button(btn_frame, text="停止", width= 12,
-                  command=self.stop_auto).grid(row=2, column=1)
+        tk.Button(
+            btn_frame,
+            text="监测工程处理结果",
+            width=25,
+            command=self.start_auto
+        ).grid(row=2, column=0, columnspan=2, pady=5)
 
         # ====================================================================
 
@@ -196,7 +191,7 @@ class App:
 
         # 上方
         preset_frame = tk.LabelFrame(right, text="预设列表")
-        preset_frame.pack(fill="x", pady=(0, 10))  # 不再 fill=y
+        preset_frame.pack(fill="x", pady=(0, 10))
 
         self.listbox = tk.Listbox(preset_frame, font=("微软雅黑", 15), height=6)
         self.listbox.pack(fill="both", expand=True)
@@ -268,14 +263,17 @@ class App:
         os.remove(filepath)
         self.refresh_file_list()
 
-    # ===========================================================================
+    # ==========================方法===========================================
 
     def start_auto(self):
-        self.running = True
-        self.auto_loop()
-
-    def stop_auto(self):
-        self.running = False
+        if sys.platform == "win32":
+            subprocess.Popen(
+                [sys.executable, "Viewer.py"],
+                creationflags=subprocess.CREATE_NO_WINDOW  # 不创建任何窗口
+            )
+            sys.exit(0)
+        else:
+            subprocess.Popen([sys.executable, "Viewer.py"])
 
 
     # ===== 显示图片=====
@@ -333,19 +331,19 @@ class App:
         camera_entry.pack(pady=5)
 
         def confirm():
-            name = entry.get().strip()
+            name = entry.get().strip() # 老板，还没有啊
             if not name:
                 return
 
-            data = self.get_params()
+            data = self.get_params() # 我的工作是做完了——但PLC那边……还在‘研究’
             data["camera"] = camera_entry.get().strip()
 
-            self.presets[name] = data
-
-            save_presets(self.presets)
+            self.presets[name] = data # 第一，PLC那边机器人软件还没调通，机器根本动不起来，第二，相机拍照位置没定——没位置我拍什么？
+            # 第三，现场光源没装——没光我拍什么？第四，没有实际照片可以测试——没图我测不了啊
+            save_presets(self.presets) #
             self.refresh_listbox()
 
-            dialog.destroy()
+            dialog.destroy()# 总之，我程序是写好了，还没有实际联调跑，我也急啊老板。我问过了，PLC那边说还在研究机器人’。时间不确定
 
         tk.Button(dialog, text="确定", width=10,
                   command=confirm).pack(pady=10)
@@ -373,7 +371,7 @@ class App:
             self.result_label.config(text="请先上传图片")
             return
 
-        img, text = process_image(self.image_path, self.get_params())
+        img, text = process_image(cv2.imread(self.image_path), self.get_params())
         self.show_image(img)
         self.result_label.config(text=text)
         self.camera.config(text=self.cameraName)
@@ -381,57 +379,13 @@ class App:
         self.refresh_file_list()
 
 
-    # =============================自动流程===================================
-    def auto_loop(self):
-        if not self.running:
-            return
-
-        # ===== 1. 相机获取 =====
-        # cam1.TriggerOnce()
-        # img = cam1.AcqImg()
-
-        # ===================测试区域=============
-
-        # ===== 0. 初始化图片列表（只初始化一次）=====
-        if not hasattr(self, "test_images"):
-            self.test_images = ["Test1.jpg", "Test3.jpg"]
-            self.img_index = 0
-
-        # ===== 1. 读取当前图片 =====
-        img_path = self.test_images[self.img_index]
-
-        # ========================================
-
-        if img_path is not None:
-            # ===== 2. 算法处理 =====
-            data = self.get_params()
-            result_img, angle = process_image(img_path, data)
-
-            # ===== 3. 显示 =====
-            self.show_image(result_img)
-            self.result_label.config(text=angle)
-
-            # ===== 4. 切换到下一张 =====
-            self.img_index = (self.img_index + 1) % len(self.test_images)
-
-        # ===== 5. 定时下一轮 =====
-        self.root.after(2000, self.auto_loop)
-
-
-
-
 # ========= 启动 =========
 if __name__ == "__main__":
 
-    # 初始化相机1
-    # cam1 = Camera()
-    # cam1.Open("Camera1.json")
-    # cam1.SetExposureTime(300000)
-
-
-
     root = tk.Tk()
-    root.iconbitmap("temp.ico")
+    root.iconbitmap("../temp.ico")
 
     App(root)
     root.mainloop()
+
+
