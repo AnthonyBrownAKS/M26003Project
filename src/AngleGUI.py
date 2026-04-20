@@ -2,19 +2,12 @@ import subprocess
 import sys
 
 import cv2
-import datetime
-import numpy as np
 import tkinter as tk
 from tkinter import filedialog, simpledialog, messagebox
 from PIL import Image, ImageTk
 import json, os
-from datetime import datetime
 
-import Viewer
-
-# 逻辑调用
-# import PLC_Control
-
+import AngleCheck
 
 DATA_FILE = "../data.json"
 
@@ -39,66 +32,7 @@ def get_pca_direction(points):
 
 # ========= 图像处理 =========
 def process_image(img, p):
-
-
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-    canny = cv2.Canny(gray, p["canny_low"], p["canny_high"])
-    gauss = cv2.GaussianBlur(canny, (p["ksize"], p["ksize"]), 0)
-    _, binary = cv2.threshold(gauss, p["thresh"], 255,
-                              cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-    kernel = np.ones((p["kernel"], p["kernel"]), np.uint8)
-
-    erosion = cv2.erode(binary, kernel)
-    
-
-    circles = cv2.HoughCircles(
-        erosion, cv2.HOUGH_GRADIENT, 1.2, p["minDist"],
-        param1=170, param2=30,
-        minRadius=p["minRadius"], maxRadius=p["maxRadius"]
-    )
-
-    # 霍夫圆错误
-    if circles is None:
-        return img, "未检测到圆"
-
-    x, y, r = np.uint16(np.around(circles))[0][0]
-
-    mask = np.zeros(erosion.shape, dtype=np.uint8)
-    cv2.circle(mask, (x, y), int(r * 1.05), 255, -1)
-    roi = cv2.bitwise_and(erosion, erosion, mask=mask)
-
-    contours, _ = cv2.findContours(roi, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    contour = max(contours, key=cv2.contourArea)
-
-    points = contour.reshape(-1, 2).astype(np.float32)
-    center, direction = get_pca_direction(points)
-
-    angle = np.degrees(np.arctan2(direction[0], direction[1]))
-
-    cv2.circle(img, (x, y), r, (0, 0, 255), 2)
-    cv2.drawContours(img, [contour], -1, (0, 255, 0), 2)
-
-    p1 = (x, y)
-    p2 = (int(center[0] + 200 * direction[0]),
-          int(center[1] + 200 * direction[1]))
-
-    cv2.line(img, p1, p2, (0, 0, 255), 3)
-    # 水平竖直参考线
-    h, w = img.shape[:2]
-    # 水平线（左→右）
-    cv2.line(img, (0, y), (w, y), (255, 0, 0), 1)
-    # 垂直线（上→下）
-    cv2.line(img, (x, 0), (x, h), (255, 0, 0), 1)
-
-
-    cv2.putText(img, f"{angle:.2f}", (40, 60),
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-
-
-    return img, round(angle, 2)
+    return AngleCheck.process_image(img)
 
 
 # ========= GUI =========

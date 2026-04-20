@@ -1,5 +1,5 @@
 {
-  "0": {
+  "1": {
     "canny_low": 180,
     "canny_high": 240,
     "ksize": 9,
@@ -10,7 +10,7 @@
     "maxRadius": 400,
     "camera": "../Camera1.json"
   },
-  "56": {
+  "2": {
     "canny_low": 180,
     "canny_high": 200,
     "ksize": 9,

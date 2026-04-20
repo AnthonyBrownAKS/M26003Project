@@ -8,4 +8,5 @@ dependencies = [
     "opencv-python>=4.13.0.92",
     "pillow>=12.2.0",
     "requests>=2.33.1",
+    "scikit-learn>=1.8.0",
 ]
