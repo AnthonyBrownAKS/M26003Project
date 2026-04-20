@@ -6,10 +6,10 @@ import time
 
 
 class MonitorWindow:
-    def __init__(self):
+    def __init__(self, width=1200, height=800):
         self.root = tk.Tk()
         self.root.title("处理结果监测界面")
-        self.root.geometry("900x600")  # 稍微调高一点给控制栏留空间
+        self.center_window(width, height)
 
         # 设置图片路径
         self.left_image_path = "../tmp/left.jpg"
@@ -43,6 +43,18 @@ class MonitorWindow:
 
         # 初始加载图片
         self.refresh_images()
+
+    # 窗口居中
+    def center_window(self, width, height):
+        """居中显示"""
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+
 
     def create_panel(self, parent, title):
         """创建显示面板"""
@@ -117,10 +129,10 @@ class MonitorWindow:
             img = Image.fromarray(img)
 
             # 计算缩放比例（保持宽高比）
-            target_size = (400, 400)
+            target_size = (500, 500)
             img.thumbnail(target_size, Image.Resampling.LANCZOS)
 
-            # 创建空白背景图（400x400）
+            # 创建背景图
             background = Image.new('RGB', target_size, (223, 230, 233))  # #dfe6e9
             # 计算居中位置
             x = (target_size[0] - img.size[0]) // 2

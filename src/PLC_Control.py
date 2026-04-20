@@ -23,6 +23,9 @@ last_right = 0
 
 # 回调函数
 callback = None
+
+
+
 # 注册
 def set_callback(func):
     global callback
@@ -118,12 +121,23 @@ def TestCamera(side, camera_path):
 def plc_monitor():
     global last_left, last_right
     global left_busy, right_busy
+    cnt = 0
 
     while True:
         try:
             # 读取PLC信号
             left_req = opc.GetDataByTagName("PLC", "LeftStartCameraRequest")["value"]
             right_req = opc.GetDataByTagName("PLC", "RightStartCameraRequest")["value"]
+
+
+            if cnt == 0:
+                cnt += 1
+            else:
+                cnt -= 1
+
+            opc.SetDataByTagName("PLC", "LeftHeartBeat", cnt)
+            opc.SetDataByTagName("PLC", "RightHeartBeat", cnt)
+
 
             # ========= 左触发 =========
             if left_req == 1 and last_left == 0:
@@ -169,11 +183,11 @@ def handle_left():
 
     try:
         # 获取型号与相机配置地址
-        type = opc.GetDataByTagName("PLC", "LeftType")["value"]
+        type = "1"
         with open("../data.json", "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        camera_path = data[f"{type}"]["camera"]
+        camera_path = "../Camera1.json"
 
         # 相机拍照获取照片
         img = TestCamera("Left",camera_path)
@@ -188,7 +202,6 @@ def handle_left():
         cv2.imwrite(filepath, res)
 
         cv2.imwrite("../tmp/left.jpg", res)
-
 
         # 角度结果写入plc ==============可能错误点×=====================
         opc.SetDataByTagName("PLC", "LeftAngle", float(angle))
@@ -210,14 +223,14 @@ def handle_right():
 
     try:
         # 获取型号与相机地址
-        type = opc.GetDataByTagName("PLC", "RightType")["value"]
+        type = "2"
         with open("../data.json", "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        camera_path = data[f"{type}"]["camera"]
+        # camera_path = data[f"{type}"]["camera"]
+        camera_path = "../Camera2.json"
 
         # 相机拍照获取照片
-        print(camera_path)
         img = TestCamera("Right", camera_path)
 
         # 算法返回img, angle
@@ -259,10 +272,10 @@ if __name__ == '__main__':
     # ==========集合测试=============
 
     # PLC监测线程 Test Accept√
-    # plc_monitor()
+    plc_monitor()
 
     # 相机调用测试 Test ERROR×
-    handle_left()
+    # handle_left()
     # handle_right()
 
     print("TestComplete!")
