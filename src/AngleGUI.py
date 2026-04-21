@@ -7,9 +7,9 @@ from tkinter import filedialog, simpledialog, messagebox
 from PIL import Image, ImageTk
 import json, os
 
-import AngleCheck
+from src import AngleCheck
 
-DATA_FILE = "../data.json"
+DATA_FILE = r"D:\M26003Project\data.json"
 
 # ========= 数据 =========
 def load_presets():
@@ -44,7 +44,7 @@ class App:
         self.root.configure(bg="#ecf0f1")
 
         # 保存结果文件
-        self.current_dir = r"../results"
+        self.current_dir = r"D:\M26003Project\results"
 
         # 自动检测控制
         self.running = False
@@ -202,12 +202,12 @@ class App:
     def start_auto(self):
         if sys.platform == "win32":
             subprocess.Popen(
-                [sys.executable, "Viewer.py"],
+                [sys.executable, "D:\M26003Project\src\Viewer.py"],
                 creationflags=subprocess.CREATE_NO_WINDOW  # 不创建任何窗口
             )
             sys.exit(0)
         else:
-            subprocess.Popen([sys.executable, "Viewer.py"])
+            subprocess.Popen([sys.executable, "D:\M26003Project\src\Viewer.py"])
 
 
     # ===== 显示图片=====
@@ -317,7 +317,7 @@ class App:
 if __name__ == "__main__":
 
     root = tk.Tk()
-    root.iconbitmap("../temp.ico")
+    root.iconbitmap(r"D:\M26003Project\temp.ico")
 
     App(root)
     root.mainloop()

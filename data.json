@@ -8,7 +8,7 @@
     "minDist": 1000,
     "minRadius": 300,
     "maxRadius": 400,
-    "camera": "../Camera1.json"
+    "camera": "D:/M26003Project/Camera1.json"
   },
   "2": {
     "canny_low": 180,
@@ -19,7 +19,7 @@
     "minDist": 1000,
     "minRadius": 300,
     "maxRadius": 500,
-    "camera": "../Camera2.json"
+    "camera": "D:/M26003Project/Camera2.json"
   },
   "3": {
     "canny_low": 0,

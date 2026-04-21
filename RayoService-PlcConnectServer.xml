@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="gb2312"?>
+<service>
+  <id>PlcConnectServer</id>
+  <name>PlcConnectServer</name>
+  <description>PlcConnectServer</description>
+  <logpath>D:\M26003Project\logs</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>8</keepFiles>
+  </log>
+  <executable>D:\M26003Project\run.bat</executable>
+</service>

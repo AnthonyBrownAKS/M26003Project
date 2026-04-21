@@ -3,13 +3,13 @@ import threading
 
 from src.OPC import OPC
 import cv2
-from Camera import Camera
+from src.Camera import Camera
 from datetime import datetime
 import time
 import json
 
 # 联通
-import AngleGUI
+from src import AngleGUI
 
 # 初始
 opc = OPC()
@@ -32,7 +32,7 @@ def set_callback(func):
     callback = func
 
 def TestFile():
-    with open("../data.json", "r", encoding="utf-8") as f:
+    with open(r"D:\M26003Project\data.json", "r", encoding="utf-8") as f:
         data = json.load(f)
 
     type = "12"
@@ -61,7 +61,7 @@ def TestCamera(side, camera_path):
     Cam1 = Camera()
 
     # PLC结果Tag
-    result_tag = f"{side}Result"
+    result_tag = f"{side}TakePhotoComplete"
 
     try:
         print(f"[{side}] 相机开始初始化")
@@ -81,7 +81,7 @@ def TestCamera(side, camera_path):
             raise Exception("采集到空图像")
 
         # 4. 保存图片
-        save_dir = f"../camImg/{side}"
+        save_dir = f"D:/M26003Project/camImg/{side}"
         os.makedirs(save_dir, exist_ok=True)
 
         filename = datetime.now().strftime("%Y%m%d_%H%M%S") + f"_{side}.jpg"
@@ -100,13 +100,6 @@ def TestCamera(side, camera_path):
 
     except Exception as e:
         print(f"[{side}] 相机异常:", e)
-
-        # 写PLC失败信号
-        try:
-            opc.SetDataByTagName("PLC", result_tag, 2)
-        except Exception as plc_err:
-            print(f"[{side}] PLC写入失败:", plc_err)
-
         return None
 
     finally:
@@ -147,6 +140,7 @@ def plc_monitor():
                     left_busy = True
                     # 上位机完成拍照时置1，收到PLC拍照请求信号时置0
                     opc.SetDataByTagName("PLC", "LeftTakePhotoComplete", 0)
+                    opc.SetDataByTagName("PLC", "LeftResult", 0)
 
                     threading.Thread(target=handle_left, daemon=True).start()
                 else:
@@ -159,7 +153,8 @@ def plc_monitor():
                 if not right_busy:
                     right_busy = True
                     # 上位机完成拍照时置1，收到PLC拍照请求信号时置0
-                    opc.SetDataByTagName("PLC", "LeftTakePhotoComplete", 0)
+                    opc.SetDataByTagName("PLC", "RightTakePhotoComplete", 0)
+                    opc.SetDataByTagName("PLC", "RightResult", 0)
 
                     threading.Thread(target=handle_right, daemon=True).start()
                 else:
@@ -184,10 +179,10 @@ def handle_left():
     try:
         # 获取型号与相机配置地址
         type = "1"
-        with open("../data.json", "r", encoding="utf-8") as f:
+        with open(r"D:/M26003Project/data.json", "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        camera_path = "../Camera1.json"
+        camera_path = r"D:/M26003Project/Camera2.json"
 
         # 相机拍照获取照片
         img = TestCamera("Left",camera_path)
@@ -196,20 +191,21 @@ def handle_left():
         res, angle = AngleGUI.process_image(img, data[f"{type}"])
 
         # GUI监视,历史文件记录
-        save_dir = r"../results/left"
+        save_dir = r"D:/M26003Project/results/left/"
         filename = datetime.now().strftime("%Y%m%d_%H%M%S") + ".jpg"
         filepath = os.path.join(save_dir, filename)
         cv2.imwrite(filepath, res)
 
-        cv2.imwrite("../tmp/left.jpg", res)
+        cv2.imwrite(r"D:/M26003Project/tmp/left.jpg", res)
 
-        # 角度结果写入plc ==============可能错误点×=====================
+        # 结果正常
+        opc.SetDataByTagName("PLC", "LeftResult", 1)
+
+        # 角度结果写入plc
         opc.SetDataByTagName("PLC", "LeftAngle", float(angle))
 
-        # 处理完成，左侧拍照完成信号 : 上位机完成拍照时置1，收到PLC拍照请求信号时置0
-        opc.SetDataByTagName("PLC", "LeftTakePhotoComplete", 1)
-
     except Exception as e:
+        opc.SetDataByTagName("PLC", "LeftResult", 2)
         print("左相机异常:", e)
 
     finally:
@@ -223,12 +219,12 @@ def handle_right():
 
     try:
         # 获取型号与相机地址
-        type = "2"
-        with open("../data.json", "r", encoding="utf-8") as f:
+        type = opc.GetDataByTagName("PLC","RightType")["value"]
+        with open("D:/M26003Project/data.json", "r", encoding="utf-8") as f:
             data = json.load(f)
 
         # camera_path = data[f"{type}"]["camera"]
-        camera_path = "../Camera2.json"
+        camera_path = "D:/M26003Project/Camera1.json"
 
         # 相机拍照获取照片
         img = TestCamera("Right", camera_path)
@@ -237,20 +233,21 @@ def handle_right():
         res, angle = AngleGUI.process_image(img, data[f"{type}"])
 
         # GUI监视,历史文件记录
-        save_dir = r"../results/right"
+        save_dir = r"D:/M26003Project/results/right"
         filename = datetime.now().strftime("%Y%m%d_%H%M%S") + ".jpg"
         filepath = os.path.join(save_dir, filename)
         cv2.imwrite(filepath, res)
 
-        cv2.imwrite("../tmp/right.jpg", res)
+        cv2.imwrite("D:/M26003Project/tmp/right.jpg", res)
+
+        # 结果正常
+        opc.SetDataByTagName("PLC", "RightResult", 1)
 
         # 角度结果写入plc
         opc.SetDataByTagName("PLC", "RightAngle", float(angle))
 
-        # 处理完成，右侧拍照完成信号 : 上位机完成拍照时置1，收到PLC拍照请求信号时置0
-        opc.SetDataByTagName("PLC", "RightTakePhotoComplete", 1)
-
     except Exception as e:
+        opc.SetDataByTagName("PLC", "RightResult", 2)
         print("右相机异常:", e)
 
     finally:

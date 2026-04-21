@@ -12,8 +12,8 @@ class MonitorWindow:
         self.center_window(width, height)
 
         # 设置图片路径
-        self.left_image_path = "../tmp/left.jpg"
-        self.right_image_path = "../tmp/right.jpg"
+        self.left_image_path = r"D:\M26003Project\tmp\left.jpg"
+        self.right_image_path = r"D:\M26003Project\tmp\right.jpg"
 
         # 刷新间隔（毫秒）
         self.refresh_interval = 1000  # 1000ms = 1秒
@@ -26,8 +26,8 @@ class MonitorWindow:
         image_container.pack(fill="both", expand=True, padx=10, pady=10)
 
         # 创建左右面板（相邻）
-        self.left_label = self.create_panel(image_container, "左侧相机")
-        self.right_label = self.create_panel(image_container, "右侧相机")
+        self.left_label = self.create_panel(image_container, "壳体&线圈监测相机")
+        self.right_label = self.create_panel(image_container, "盖板监测相机")
 
         self.left_label.pack(side="left", expand=True, fill="both", padx=5, pady=5)
         self.right_label.pack(side="left", expand=True, fill="both", padx=5, pady=5)
