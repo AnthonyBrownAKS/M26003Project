@@ -37,15 +37,15 @@ def process_image(img):
         # cv2.waitKey(0)
 
         # ===== 膨胀（你原来写成 erosion 其实是 dilate）=====
-        kernel = np.ones((13, 13), np.uint8)
+        kernel = np.ones((5, 5), np.uint8)
         dilation = cv2.dilate(binary, kernel)
         cv2.imwrite(r"D:/M26003Project/results/test.jpg", dilation)
 
         # ===== 找圆 =====
         circles = cv2.HoughCircles(
-            dilation, cv2.HOUGH_GRADIENT, 1.2, 1000,
+            dilation, cv2.HOUGH_GRADIENT, 2, minDist=100,
             param1=100, param2=30,
-            minRadius=600, maxRadius=1000
+            minRadius=700, maxRadius=800
         )
 
         if circles is None:
@@ -55,7 +55,7 @@ def process_image(img):
 
         # ===== ROI（只保留圆区域）=====
         mask = np.zeros(dilation.shape, dtype=np.uint8)
-        cv2.circle(mask, (x, y), int(r * 1.1), 255, -1)
+        cv2.circle(mask, (x, y), int(r * 1.05), 255, -1)
         roi = cv2.bitwise_and(dilation, dilation, mask=mask)
 
         # ===== 轮廓 =====
@@ -100,8 +100,12 @@ def process_image(img):
 
         angle = np.degrees(np.arctan2(dx, dy))
 
-        if angle < 0:
-            angle += 360
+        # 角度优化
+        # if angle < 0:
+        #     angle += 360
+
+        # if angle > 70.0 or angle < -70.0:
+        #     raise ValueError("角度偏移过大")
 
         # ===== 画图 =====
         # 圆
@@ -114,16 +118,16 @@ def process_image(img):
         p1 = (x, y)
         p2 = (int(x + 200 * direction[0]),
               int(y + 200 * direction[1]))
-        cv2.line(img, p1, p2, (0, 0, 255), 3)
+        cv2.line(img, p1, p2, (0, 0, 255), 5)
 
         # 十字参考线
         h, w = img.shape[:2]
-        cv2.line(img, (0, y), (w, y), (255, 0, 0), 1)
-        cv2.line(img, (x, 0), (x, h), (255, 0, 0), 1)
+        cv2.line(img, (0, y), (w, y), (255, 0, 0), 3)
+        cv2.line(img, (x, 0), (x, h), (255, 0, 0), 3)
 
         # 角度显示
-        cv2.putText(img, f"{angle:.2f}", (40, 60),
-                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+        cv2.putText(img, f"{angle:.2f}", (100, 120),
+                    cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 255, 0), 5)
 
         # 缺口点（绿色）
         for p in notch_points:
@@ -142,20 +146,20 @@ def process_image(img):
         return img, round(angle, 2)
 
     except Exception as e:
-        raise RuntimeError(f"图像处理失败: {e}")
+        raise RuntimeError(f"图像处理失败，异常报告: {e}")
 
 
 
 
 if __name__ == "__main__":
-    path = r"D:\M26003Project\camImg\left\20260418_171613_Left.jpg"
+    path = r"D:\PYTHON_PROJECT\M26003Project\results\right\20260422_140329_Right.jpg"
 
     if not os.path.exists(path):
         raise FileNotFoundError(f"文件不存在: {path}")
 
     img = cv2.imread(path)
 
+
     result_img, angle = process_image(img)
 
-    cv2.imshow("hello",result_img)
-    cv2.waitKey(0)
+    cv2.imwrite(r"D:\PYTHON_PROJECT\M26003Project\tmp\test.jpg", result_img)
