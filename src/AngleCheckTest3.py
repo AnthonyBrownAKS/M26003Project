@@ -1,8 +1,8 @@
-import math
-
 import cv2
 import numpy as np
 import os
+import math
+
 
 # 角度检测
 
@@ -77,7 +77,7 @@ def process_image(img):
         median = cv2.medianBlur(gray, 3)
 
         # ===== 边缘 =====
-        canny = cv2.Canny(median, 50, 100)
+        canny = cv2.Canny(median, 20, 80)
         cv2.imshow("canny", resizeImg(canny))
         cv2.namedWindow("canny", cv2.WINDOW_NORMAL)
         cv2.waitKey(0)
@@ -98,14 +98,12 @@ def process_image(img):
         cv2.namedWindow("dilation", cv2.WINDOW_NORMAL)
         cv2.waitKey(0)
 
-
         # ===== 找圆 =====
         circles = cv2.HoughCircles(
             dilation, cv2.HOUGH_GRADIENT, 2, minDist=100,
             param1=100, param2=30,
             minRadius=400, maxRadius=600
         )
-
 
         if circles is None:
             raise ValueError("未检测到圆！")
@@ -117,7 +115,7 @@ def process_image(img):
 
         # =====划定核心区域=====
         mask = np.zeros(inv.shape, dtype=np.uint8)
-        cv2.circle(mask, (x, y), int(r * 1.2), 255, -1)
+        cv2.circle(mask, (x, y), int(r * 1.15), 255, -1)
         roi = cv2.bitwise_and(inv, inv, mask=mask)
 
         cv2.circle(img, (x, y), r, (0, 0, 255), 2)
@@ -134,25 +132,56 @@ def process_image(img):
 
         # =====最小外接矩形=====
         rect = cv2.minAreaRect(contour)
-        (cx, cy), (w, h), angle = rect
+        (cx, cy), (w, h), rect_angle = rect
 
-        # 获取四个点
+        if w < h:
+            rect_angle += 90
+
+        # 计算角度
+        theta = np.radians(rect_angle)
+
+        # 注意：你的角度体系（0°向下）
+        vx = np.sin(theta)
+        vy = np.cos(theta)
+
+        center = np.array([x, y])
+
+        pos_score = 0
+        neg_score = 0
+
+        for p in contour[:, 0, :]:
+            v = p - center
+
+            # 投影到方向轴
+            proj = v[0] * vx + v[1] * vy
+
+            dist = np.linalg.norm(v)
+
+            if proj > 0:
+                pos_score += dist
+            else:
+                neg_score += dist
+
+        # 判断哪一侧更突出
+        if neg_score > pos_score:
+            rect_angle += 180
+
+        angle = rect_angle % 360
+
+
+        # # 获取四个点
         box = cv2.boxPoints(rect)
-
-        # ⚠️ 关键：必须转 int
+        #
+        # # ⚠️ 关键：必须转 int
         box = box.astype(int)
 
-        # 计算角度（可选）
-        dx = box[1][0] - box[0][0]
-        dy = box[1][1] - box[0][1]
-        angle = np.degrees(np.arctan2(dy, dx))
+        # # 计算角度（可选）
+        # dx = box[1][0] - box[0][0]
+        # dy = box[1][1] - box[0][1]
+        # angle = np.degrees(np.arctan2(dy, dx))
 
         # 画出来
         cv2.drawContours(img, [box], 0, (255, 0, 0), 2)
-
-
-        # =====凸包======
-        # hull = cv2.convexHull(contour)
 
         cv2.drawContours(img, [contour], -1, (0, 255, 0), 2)
 
@@ -164,17 +193,9 @@ def process_image(img):
         cv2.namedWindow("img", cv2.WINDOW_NORMAL)
         cv2.waitKey(0)
 
-        # =====找区域中心=====
-        # center = np.array([x, y])
-        # mid, far_pts = far_point_mean(contour, center, ratio=0.03)
-        #
-        # vx = mid[0] - center[0]
-        # vy = mid[1] - center[1]
-        #
-        # angle = np.degrees(np.arctan2(vx, vy))
-
         checkLine(x, y, angle, img)
 
+        angle = -angle
         # 显示角度
         cv2.putText(img, f"{angle:.2f}", (100, 120),
                     cv2.FONT_HERSHEY_SIMPLEX, 5, (0, 255, 0), 5)
@@ -184,20 +205,20 @@ def process_image(img):
         cv2.line(img, (0, y), (w, y), (255, 0, 0), 3)
         cv2.line(img, (x, 0), (x, h), (255, 0, 0), 3)
 
-
-
         return img, round(angle, 2)
 
     except Exception as e:
         raise RuntimeError(f"图像处理失败，异常报告: {e}")
 
 
-
-
 if __name__ == "__main__":
-    path = r"D:\PYTHON_PROJECT\M26003Project\camImg\left\20260422_135249_Left.jpg"
+    path = r"D:\PYTHON_PROJECT\M26003Project\results\right\20260422_140329_Right.jpg"
+
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"文件不存在: {path}")
 
     img = cv2.imread(path)
+
 
     result_img, angle = process_image(img)
 

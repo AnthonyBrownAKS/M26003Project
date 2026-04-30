@@ -19,10 +19,10 @@ def process_image(img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # ===== 去噪 =====
-        median = cv2.medianBlur(gray, 3)
+        median = cv2.medianBlur(gray, 9)
 
         # ===== 边缘 =====
-        canny = cv2.Canny(median, 50, 100)
+        canny = cv2.Canny(median, 150, 300)
         # cv2.imshow("canny", canny)
         # cv2.namedWindow("canny", cv2.WINDOW_NORMAL)
         # cv2.waitKey(0)
@@ -79,7 +79,7 @@ def process_image(img):
         r_mean = np.median(distances)
 
         # ===== 找“明显凹进去”的点 =====
-        threshold = r_mean * 0.97  # 这个很关键（0.95~0.98调）
+        threshold = r_mean * 0.96  # 这个很关键（0.95~0.98调）
         mask = distances < threshold
 
         notch_points = points[mask]
@@ -104,8 +104,8 @@ def process_image(img):
         # if angle < 0:
         #     angle += 360
 
-        # if angle > 70.0 or angle < -70.0:
-        #     raise ValueError("角度偏移过大")
+        if angle > 50.0 or angle < -50.0:
+               raise ValueError("角度偏移过大")
 
         # ===== 画图 =====
         # 圆
@@ -152,14 +152,15 @@ def process_image(img):
 
 
 if __name__ == "__main__":
-    path = r"D:\PYTHON_PROJECT\M26003Project\results\right\20260422_140329_Right.jpg"
+    path = r"D:\M26003Project\camImg\Right\20260429_161850_Right.jpg"
 
     if not os.path.exists(path):
         raise FileNotFoundError(f"文件不存在: {path}")
 
     img = cv2.imread(path)
 
-
     result_img, angle = process_image(img)
 
-    cv2.imwrite(r"D:\PYTHON_PROJECT\M26003Project\tmp\test.jpg", result_img)
+    cv2.imshow("hello",result_img)
+    cv2.imwrite( "test.jpg", img)
+    cv2.waitKey(0)
