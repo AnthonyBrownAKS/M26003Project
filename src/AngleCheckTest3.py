@@ -37,9 +37,9 @@ def checkLine(cx, cy, angle, vis):
     # 画线
     cv2.line(vis, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-    cv2.imshow("line", resizeImg(vis))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow("line", resizeImg(vis))
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 
 def far_point_mean(contour, center, ratio=0.3):
@@ -78,25 +78,25 @@ def process_image(img):
 
         # ===== 边缘 =====
         canny = cv2.Canny(median, 20, 80)
-        cv2.imshow("canny", resizeImg(canny))
-        cv2.namedWindow("canny", cv2.WINDOW_NORMAL)
-        cv2.waitKey(0)
+        # cv2.imshow("canny", resizeImg(canny))
+        # cv2.namedWindow("canny", cv2.WINDOW_NORMAL)
+        # cv2.waitKey(0)
 
         # ===== 二值 =====
         _, binary = cv2.threshold(
             canny, 0, 255,
             cv2.THRESH_BINARY + cv2.THRESH_OTSU
         )
-        cv2.imshow("binary", resizeImg(binary))
-        cv2.namedWindow("binary", cv2.WINDOW_NORMAL)
-        cv2.waitKey(0)
+        # cv2.imshow("binary", resizeImg(binary))
+        # cv2.namedWindow("binary", cv2.WINDOW_NORMAL)
+        # cv2.waitKey(0)
 
         # ===== 膨胀 =====
         dilation = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel=np.ones((11, 11), np.uint8))
 
-        cv2.imshow("dilation", resizeImg(dilation))
-        cv2.namedWindow("dilation", cv2.WINDOW_NORMAL)
-        cv2.waitKey(0)
+        # cv2.imshow("dilation", resizeImg(dilation))
+        # cv2.namedWindow("dilation", cv2.WINDOW_NORMAL)
+        # cv2.waitKey(0)
 
         # ===== 找圆 =====
         circles = cv2.HoughCircles(
@@ -185,13 +185,13 @@ def process_image(img):
 
         cv2.drawContours(img, [contour], -1, (0, 255, 0), 2)
 
-        cv2.imshow("roi", resizeImg(roi))
-        cv2.namedWindow("roi", cv2.WINDOW_NORMAL)
-        cv2.waitKey(0)
+        # cv2.imshow("roi", resizeImg(roi))
+        # cv2.namedWindow("roi", cv2.WINDOW_NORMAL)
+        # cv2.waitKey(0)
 
-        cv2.imshow("img", resizeImg(img))
-        cv2.namedWindow("img", cv2.WINDOW_NORMAL)
-        cv2.waitKey(0)
+        # cv2.imshow("img", resizeImg(img))
+        # cv2.namedWindow("img", cv2.WINDOW_NORMAL)
+        # cv2.waitKey(0)
 
         checkLine(x, y, angle, img)
 
@@ -212,7 +212,7 @@ def process_image(img):
 
 
 if __name__ == "__main__":
-    path = r"D:\PYTHON_PROJECT\M26003Project\results\right\20260422_140329_Right.jpg"
+    path = r"D:\M26003Project\camImg\Left\50.jpg"
 
     if not os.path.exists(path):
         raise FileNotFoundError(f"文件不存在: {path}")
@@ -222,4 +222,4 @@ if __name__ == "__main__":
 
     result_img, angle = process_image(img)
 
-    cv2.imwrite(r"D:\PYTHON_PROJECT\M26003Project\tmp\test.jpg", result_img)
+    cv2.imwrite(r"D:\M26003Project\tmp\test.jpg", result_img)

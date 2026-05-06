@@ -2,6 +2,57 @@ import cv2
 import numpy as np
 import os
 
+import math
+import cv2
+
+def check_safe_range(img, x, y, cx, cy, safe_radius):
+    """
+    (x, y): 当前点（你已有）
+    (cx, cy): 圆心
+    safe_radius: 安全半径
+    """
+
+    # ===== 计算距离 =====
+    dist = math.hypot(x - cx, y - cy)
+
+    # ===== 画安全范围（圆）=====
+    vis = img.copy()
+    cv2.circle(vis, (int(cx), int(cy)), int(safe_radius), (0, 255, 0), 2)
+
+    # 画中心点
+    cv2.circle(vis, (int(cx), int(cy)), 6, (255, 0, 0), -1)
+
+    # 画检测点
+    cv2.circle(vis, (int(x), int(y)), 6, (0, 0, 255), -1)
+
+    # 连线（方便看偏移）
+    cv2.line(vis, (int(cx), int(cy)), (int(x), int(y)), (255, 255, 0), 2)
+
+    cv2.imwrite("test1.jpg", vis)
+
+    # ===== 判断是否越界 =====
+    if dist > safe_radius:
+        cv2.putText(vis, "OUT OF RANGE", (50, 100),
+                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 4)
+
+        cv2.imshow("safe_check", vis)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+        raise ValueError("超过安全范围")
+
+    else:
+        cv2.putText(vis, "SAFE", (50, 100),
+                    cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 4)
+
+        cv2.imshow("safe_check", vis)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+
+
+    return True
+
 # 角度检测
 
 def resizeImg(img, scale_percent=50):
@@ -11,6 +62,8 @@ def resizeImg(img, scale_percent=50):
 
 
 def process_image(img):
+
+    cv2.imwrite(r"D:\M26003Project\src\logs\Results\0Origin.jpg", img)
     try:
         if img is None:
             raise ValueError("输入图像为空！")
@@ -19,27 +72,23 @@ def process_image(img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
         # ===== 去噪 =====
-        median = cv2.medianBlur(gray, 9)
+        median = cv2.medianBlur(gray, 7)
 
         # ===== 边缘 =====
-        canny = cv2.Canny(median, 150, 300)
-        # cv2.imshow("canny", canny)
-        # cv2.namedWindow("canny", cv2.WINDOW_NORMAL)
-        # cv2.waitKey(0)
+        canny = cv2.Canny(median, 100, 200)
+        cv2.imwrite(r"D:\M26003Project\src\logs\Results\1canny.jpg", canny)
 
         # ===== 二值 =====
         _, binary = cv2.threshold(
             canny, 0, 255,
             cv2.THRESH_BINARY + cv2.THRESH_OTSU
         )
-        # cv2.imshow("binary", binary)
-        # cv2.namedWindow("binary", cv2.WINDOW_NORMAL)
-        # cv2.waitKey(0)
+        cv2.imwrite(r"D:\M26003Project\src\logs\Results\2binary.jpg", binary)
 
         # ===== 膨胀（你原来写成 erosion 其实是 dilate）=====
-        kernel = np.ones((5, 5), np.uint8)
+        kernel = np.ones((11, 11), np.uint8)
         dilation = cv2.dilate(binary, kernel)
-        cv2.imwrite(r"D:/M26003Project/results/test.jpg", dilation)
+        cv2.imwrite(r"D:\M26003Project\src\logs\Results\3dilation.jpg", dilation)
 
         # ===== 找圆 =====
         circles = cv2.HoughCircles(
@@ -53,10 +102,18 @@ def process_image(img):
 
         x, y, r = np.uint16(np.around(circles))[0][0]
 
+        # check_safe_range(img, x, y, 1430, 1050, 300)
+
         # ===== ROI（只保留圆区域）=====
         mask = np.zeros(dilation.shape, dtype=np.uint8)
-        cv2.circle(mask, (x, y), int(r * 1.05), 255, -1)
+        cv2.circle(mask, (x, y), int(r * 1.1), 255, -1)
         roi = cv2.bitwise_and(dilation, dilation, mask=mask)
+
+        cv2.imwrite(r"D:\M26003Project\src\logs\Results\4roi.jpg", roi)
+
+
+        print(f"当前半径：{r}")
+
 
         # ===== 轮廓 =====
         contours, _ = cv2.findContours(
@@ -104,9 +161,6 @@ def process_image(img):
         # if angle < 0:
         #     angle += 360
 
-        if angle > 50.0 or angle < -50.0:
-               raise ValueError("角度偏移过大")
-
         # ===== 画图 =====
         # 圆
         cv2.circle(img, (x, y), r, (0, 0, 255), 2)
@@ -143,16 +197,23 @@ def process_image(img):
 
         print(f"角度: {angle:.2f}")
 
+        # if angle > 10 or angle < -35:
+        #     cv2.imwrite(r"D:\M26003Project\tmp\right.jpg", img)
+        #     raise ValueError("角度偏移过大")
+
+        cv2.imwrite(r"D:\M26003Project\src\logs\Results\6result.jpg",img)
+
         return img, round(angle, 2)
 
     except Exception as e:
+
         raise RuntimeError(f"图像处理失败，异常报告: {e}")
 
 
 
 
 if __name__ == "__main__":
-    path = r"D:\M26003Project\camImg\Right\20260429_161850_Right.jpg"
+    path = r"D:\M26003Project\tmp\Right.jpg"
 
     if not os.path.exists(path):
         raise FileNotFoundError(f"文件不存在: {path}")
@@ -160,7 +221,3 @@ if __name__ == "__main__":
     img = cv2.imread(path)
 
     result_img, angle = process_image(img)
-
-    cv2.imshow("hello",result_img)
-    cv2.imwrite( "test.jpg", img)
-    cv2.waitKey(0)

@@ -10,10 +10,12 @@ class MonitorWindow:
         self.root = tk.Tk()
         self.root.title("处理结果监测界面")
         self.center_window(width, height)
+        self.root.state("zoomed")
 
         # 设置图片路径
         self.left_image_path = r"D:\M26003Project\tmp\left.jpg"
         self.right_image_path = r"D:\M26003Project\tmp\right.jpg"
+        self.middle_image_path = r"D:\M26003Project\tmp\mid.jpg"
 
         # 刷新间隔（毫秒）
         self.refresh_interval = 1000  # 1000ms = 1秒
@@ -26,10 +28,13 @@ class MonitorWindow:
         image_container.pack(fill="both", expand=True, padx=10, pady=10)
 
         # 创建左右面板（相邻）
-        self.left_label = self.create_panel(image_container, "壳体&线圈监测相机")
+        self.left_label = self.create_panel(image_container, "壳体监测相机")
+        self.middle_label = self.create_panel(image_container, "线圈监测相机")
         self.right_label = self.create_panel(image_container, "盖板监测相机")
 
+
         self.left_label.pack(side="left", expand=True, fill="both", padx=5, pady=5)
+        self.middle_label.pack(side="left", expand=True, fill="both", padx=5, pady=5)
         self.right_label.pack(side="left", expand=True, fill="both", padx=5, pady=5)
 
         # ========== 下方：控制栏（单独一行）==========
@@ -114,7 +119,7 @@ class MonitorWindow:
     def load_image(self, image_path):
         """加载图片并返回PhotoImage对象"""
         if not os.path.exists(image_path):
-            return None, f"文件不存在: {os.path.basename(image_path)}"
+            return None, f"图片数据不存在, 请拍照后查看结果"
 
         try:
             # 读取图片
@@ -159,6 +164,16 @@ class MonitorWindow:
         else:
             self.left_label.img_label.config(image="", text=left_status)
             self.left_label.status_label.config(text=left_status, fg="red")
+
+        # 加载中侧图片
+        middle_img, middle_status = self.load_image(self.middle_image_path)
+        if middle_img:
+            self.middle_label.img_label.config(image=middle_img, text="")
+            self.middle_label.img_label.image = middle_img  # 保持引用
+            self.middle_label.status_label.config(text=middle_status, fg="green")
+        else:
+            self.middle_label.img_label.config(image="", text=middle_status)
+            self.middle_label.status_label.config(text=middle_status, fg="red")
 
         # 加载右侧图片
         right_img, right_status = self.load_image(self.right_image_path)
@@ -215,13 +230,14 @@ class MonitorWindow:
 if __name__ == "__main__":
     # 检查图片路径是否存在
     left_path = "../tmp/left.jpg"
+    middle_path = "../tmp/mid.jpg"
     right_path = "../tmp/right.jpg"
 
     print("=" * 50)
     print("监测界面启动")
     print(f"左侧图片路径: {os.path.abspath(left_path)}")
     print(f"右侧图片路径: {os.path.abspath(right_path)}")
-    print(f"文件存在: 左侧={os.path.exists(left_path)}, 右侧={os.path.exists(right_path)}")
+    print(f"文件存在: 左侧={os.path.exists(left_path)}, 右侧={os.path.exists(right_path)}, 中侧={os.path.exists(middle_path)}")
     print("=" * 50)
 
     # 创建并运行窗口

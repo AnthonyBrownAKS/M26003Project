@@ -203,7 +203,7 @@ class OPC:
                     }
 
                 # 写入请求成功，验证实际写入值
-                print("数据设置请求成功")
+                # print("数据设置请求成功")
 
                 # 延迟一小段时间，等待PLC更新
                 time.sleep(0.)
@@ -235,8 +235,8 @@ class OPC:
                     if read_float is not None and abs(read_float - write_float) < 0.0001:
                         # 写入验证成功
                         data = result.get("data")
-                        print(f"返回数据: {data}")
-                        print(f"写入成功，从PLC读取值为: {read_value}")
+                        # print(f"返回数据: {data}")
+                        # print(f"写入成功，从PLC读取值为: {read_value}")
                         return {
                             "success": True,
                             "value": "1",
@@ -245,7 +245,7 @@ class OPC:
                     else:
                         # 值不一致，重试
                         if retry_count < max_retries - 1:
-                            print(f"值不一致，写入: {value}, 读取: {read_value}，正在重试... ({retry_count+1}/{max_retries})")
+                            # print(f"值不一致，写入: {value}, 读取: {read_value}，正在重试... ({retry_count+1}/{max_retries})")
                             time.sleep(0.1)
                             continue
 

@@ -202,12 +202,12 @@ class App:
     def start_auto(self):
         if sys.platform == "win32":
             subprocess.Popen(
-                [sys.executable, "D:\M26003Project\src\Viewer.py"],
+                [sys.executable, r"D:\M26003Project\src\Viewer.py"],
                 creationflags=subprocess.CREATE_NO_WINDOW  # 不创建任何窗口
             )
             sys.exit(0)
         else:
-            subprocess.Popen([sys.executable, "D:\M26003Project\src\Viewer.py"])
+            subprocess.Popen([sys.executable, r"D:\M26003Project\src\Viewer.py"])
 
 
     # ===== 显示图片=====
