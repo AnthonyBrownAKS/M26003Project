@@ -104,10 +104,14 @@ def process_image(img):
 
         # check_safe_range(img, x, y, 1430, 1050, 300)
 
+        inv = cv2.bitwise_not(dilation)
+
         # ===== ROI（只保留圆区域）=====
-        mask = np.zeros(dilation.shape, dtype=np.uint8)
-        cv2.circle(mask, (x, y), int(r * 1.1), 255, -1)
-        roi = cv2.bitwise_and(dilation, dilation, mask=mask)
+        mask = np.zeros(inv.shape, dtype=np.uint8)
+        cv2.circle(mask, (x, y), int(r * 0.93), 255, -1)
+        roi = cv2.bitwise_and(inv, inv, mask=mask)
+
+        # cv2.circle(roi, (int(x), int(y)), int(r * 0.70), (0, 0, 0), -1)
 
         cv2.imwrite(r"D:\M26003Project\src\logs\Results\4roi.jpg", roi)
 
@@ -136,7 +140,7 @@ def process_image(img):
         r_mean = np.median(distances)
 
         # ===== 找“明显凹进去”的点 =====
-        threshold = r_mean * 0.96  # 这个很关键（0.95~0.98调）
+        threshold = r_mean * 0.98  # 这个很关键（0.95~0.98调）
         mask = distances < threshold
 
         notch_points = points[mask]
@@ -213,7 +217,7 @@ def process_image(img):
 
 
 if __name__ == "__main__":
-    path = r"D:\M26003Project\tmp\Right.jpg"
+    path = r"D:\M26003Project\camImg\Right\20260508_143726_Right.jpg"
 
     if not os.path.exists(path):
         raise FileNotFoundError(f"文件不存在: {path}")

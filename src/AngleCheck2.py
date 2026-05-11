@@ -22,7 +22,7 @@ def process_image(img):
         median = cv2.medianBlur(gray, 3)
 
         # ===== 边缘 =====
-        canny = cv2.Canny(median, 100, 200)
+        canny = cv2.Canny(median, 20, 80)
         cv2.imwrite(r"D:\M26003Project\src\logs\Results\1canny.jpg", canny)
 
         # ===== 二值 =====
@@ -33,7 +33,7 @@ def process_image(img):
         cv2.imwrite(r"D:\M26003Project\src\logs\Results\2binary.jpg", binary)
 
         # ===== 膨胀 =====
-        kernel = np.ones((9, 9), np.uint8)
+        kernel = np.ones((15, 15), np.uint8)
         dilation = cv2.dilate(binary, kernel)
         cv2.imwrite(r"D:\M26003Project\src\logs\Results\3dilation.jpg", dilation)
 
@@ -53,7 +53,7 @@ def process_image(img):
 
         # ===== ROI（只保留圆区域）=====
         mask = np.zeros(inv.shape, dtype=np.uint8)
-        cv2.circle(mask, (x, y), int(r), 255, -1)
+        cv2.circle(mask, (x, y), int(r * 0.90), 255, -1)
         roi = cv2.bitwise_and(inv, inv, mask=mask)
 
         cv2.circle(roi, (int(x), int(y)), int(r * 0.70), (0, 0, 0), -1)
@@ -90,7 +90,7 @@ def process_image(img):
 
         # 取最远的2%
         max_dist = np.max(distances)
-        mask = distances > max_dist * 0.95
+        mask = distances > max_dist * 0.995
 
         protrusion_points = points[mask]
 
@@ -146,7 +146,7 @@ def process_image(img):
 
 
 if __name__ == "__main__":
-    path = r"D:\M26003Project\camImg\Left\6.jpg"
+    path = r"D:\M26003Project\camImg\Left\20260508_123857_Left.jpg"
 
     if not os.path.exists(path):
         raise FileNotFoundError(f"文件不存在: {path}")

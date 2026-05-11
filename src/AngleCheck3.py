@@ -66,6 +66,7 @@ def far_point_mean(contour, center, ratio=0.3):
 
 
 def process_image(img):
+    cv2.imwrite(r"D:\M26003Project\src\logs\Results\0Origin.jpg", img)
     try:
         if img is None:
             raise ValueError("输入图像为空！")
@@ -76,33 +77,30 @@ def process_image(img):
         # ===== 去噪 =====
         median = cv2.medianBlur(gray, 3)
 
-        # ===== 边缘 =====
-        canny = cv2.Canny(median, 20, 80)
-        # cv2.imshow("canny", resizeImg(canny))
-        # cv2.namedWindow("canny", cv2.WINDOW_NORMAL)
-        # cv2.waitKey(0)
-
         # ===== 二值 =====
-        _, binary = cv2.threshold(
-            canny, 0, 255,
-            cv2.THRESH_BINARY + cv2.THRESH_OTSU
-        )
-        # cv2.imshow("binary", resizeImg(binary))
-        # cv2.namedWindow("binary", cv2.WINDOW_NORMAL)
-        # cv2.waitKey(0)
+        # _, binary = cv2.threshold(
+        #     median, 170, 255,
+        #     cv2.THRESH_BINARY + cv2.THRESH_OTSU
+        # )
+        # cv2.imwrite(r"D:\M26003Project\src\logs\Results\1binary.jpg", binary)
+
+        # ===== 边缘 =====
+        canny = cv2.Canny(median, 20, 50)
+        cv2.imwrite(r"D:\M26003Project\src\logs\Results\2canny.jpg", canny)
+
 
         # ===== 膨胀 =====
-        dilation = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel=np.ones((11, 11), np.uint8))
+        # dilation = cv2.morphologyEx(canny, cv2.MORPH_CLOSE, kernel=np.ones((7, 7), np.uint8))
+        kernel = np.ones((11, 11), np.uint8)
+        dilation = cv2.dilate(canny, kernel)
+        cv2.imwrite(r"D:\M26003Project\src\logs\Results\3dilation.jpg", dilation)
 
-        # cv2.imshow("dilation", resizeImg(dilation))
-        # cv2.namedWindow("dilation", cv2.WINDOW_NORMAL)
-        # cv2.waitKey(0)
 
         # ===== 找圆 =====
         circles = cv2.HoughCircles(
             dilation, cv2.HOUGH_GRADIENT, 2, minDist=100,
             param1=100, param2=30,
-            minRadius=400, maxRadius=600
+            minRadius=200, maxRadius=300
         )
 
         if circles is None:
@@ -115,13 +113,15 @@ def process_image(img):
 
         # =====划定核心区域=====
         mask = np.zeros(inv.shape, dtype=np.uint8)
-        cv2.circle(mask, (x, y), int(r * 1.15), 255, -1)
+        cv2.circle(mask, (x, y), int(r * 1.9), 255, -1)
+        cv2.circle(mask, (x, y), int(r * 1.8), 0, -1)
         roi = cv2.bitwise_and(inv, inv, mask=mask)
+        cv2.imwrite(r"D:\M26003Project\src\logs\Results\4roi.jpg", roi)
 
         cv2.circle(img, (x, y), r, (0, 0, 255), 2)
 
         # ====获得凸出部分=====
-        cv2.circle(roi, (int(x), int(y)), int(r * 1.01), (0, 0, 0), -1)
+        cv2.circle(roi, (int(x), int(y)), int(r * 1.05), (0, 0, 0), -1)
 
         # ===== 轮廓 =====
         contours, _ = cv2.findContours(
@@ -184,6 +184,7 @@ def process_image(img):
         cv2.drawContours(img, [box], 0, (255, 0, 0), 2)
 
         cv2.drawContours(img, [contour], -1, (0, 255, 0), 2)
+        cv2.imwrite(r"D:\M26003Project\src\logs\Results\5contours.jpg", img)
 
         # cv2.imshow("roi", resizeImg(roi))
         # cv2.namedWindow("roi", cv2.WINDOW_NORMAL)
@@ -205,6 +206,8 @@ def process_image(img):
         cv2.line(img, (0, y), (w, y), (255, 0, 0), 3)
         cv2.line(img, (x, 0), (x, h), (255, 0, 0), 3)
 
+        cv2.imwrite(r"D:\M26003Project\src\logs\Results\6result.jpg", img)
+
         return img, round(angle, 2)
 
     except Exception as e:
@@ -212,7 +215,7 @@ def process_image(img):
 
 
 if __name__ == "__main__":
-    path = r"D:\M26003Project\camImg\Left\50.jpg"
+    path = r"D:\M26003Project\src\logs\Results\0Origin.jpg"
 
     if not os.path.exists(path):
         raise FileNotFoundError(f"文件不存在: {path}")

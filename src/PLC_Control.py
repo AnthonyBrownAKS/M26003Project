@@ -3,9 +3,8 @@ import threading
 
 from numpy.ma.core import angle
 
-from src import testO
 from src import AngleCheck2
-from src import AngleCheckTest3
+from src import AngleCheck3
 from src.OPC import OPC
 import cv2
 from src.Camera import Camera
@@ -22,10 +21,12 @@ opc = OPC()
 # 状态锁（防重复执行）
 left_busy = False
 right_busy = False
+mid_busy = False
 
 # 上一帧状态（用于上升沿检测）
 last_left = 0
 last_right = 0
+last_mid = 0
 
 # 回调函数
 callback = None
@@ -164,7 +165,7 @@ def plc_monitor():
 
             # ========= 线圈触发 =========
             if mid_req == 1 and last_mid == 0:
-                print("检测到 线圈 拍照请求")
+                print("检测到 Mid 拍照请求")
 
                 if not mid_busy:
                     mid_busy = True
@@ -194,6 +195,7 @@ def plc_monitor():
 
             # 更新状态（用于上升沿检测）
             last_left = left_req
+            last_mid = mid_req
             last_right = right_req
 
             time.sleep(0.05) # 20Hz轮询
@@ -223,7 +225,7 @@ def handle_left():
 
         # 算法返回img, angle
         if type == 4:
-            res, angle = AngleCheckTest3.process_image(img)
+            res, angle = AngleCheck3.process_image(img)
         else:
             res, angle = AngleCheck2.process_image(img)
 
@@ -271,7 +273,7 @@ def handle_mid():
         with open(r"D:/M26003Project/data.json", "r", encoding="utf-8") as f:
             data = json.load(f)
 
-        camera_path = r"D:/M26003Project/Camera2.json"
+        camera_path = r"D:/M26003Project/Camera3.json"
 
         # 相机拍照获取照片
         img = TestCamera("Mid", camera_path)
@@ -279,7 +281,7 @@ def handle_mid():
 
         # 算法返回img, angle
 
-        res, angle = AngleCheckTest3.process_image(img)
+        res, angle = AngleCheck3.process_image(img)
 
         print(f"发送给{type}机器人角度: {angle} ")
 
@@ -304,7 +306,7 @@ def handle_mid():
         print("线圈相机异常:", e)
 
     finally:
-        left_busy = False
+        mid_busy = False
 
 
 # ================右相机处理======================================
@@ -369,6 +371,7 @@ if __name__ == '__main__':
 
     # 相机调用测试 Test ERROR×
     # handle_left()
+    # handle_mid()
     # handle_right()
 
 
